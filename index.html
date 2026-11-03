@@ -19,13 +19,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one navy column, the logo built from its pieces on top, then a stack of shield-cut link buttons.
-   Single deliberate theme (the brand's navy), so it reads the same inside Instagram's light or dark browser. */
+/* Layout: one navy column, the logo on top, then a stack of shield-cut link buttons.
+   Single deliberate theme (the brand's navy), so it reads the same inside Instagram's light or dark browser.
+   Gold is the brand's secondary colour from its posts; here it marks the caduceus serpents and the "conferido" checks. */
 :root{
   --bg-0:#0A1322; --bg-1:#14243D; --glow:#3E628F;
   --ink:#F2F5FA; --soft:#A9C1E0; --muted:#8A9BB4; --line:rgba(169,193,224,.18);
   --btn:#F2F5FA; --btn-ink:#0E1A2C; --tile:rgba(255,255,255,.05); --tile-hi:rgba(255,255,255,.1);
-  --ok:#4CC38A;
+  --gold:#C8A45E; --ok:#4CC38A;
   --f:"Montserrat",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   color-scheme:dark;
@@ -40,11 +41,24 @@ body{
   background:radial-gradient(70% 40% at 50% 12%,var(--glow) 0%,transparent 70%),linear-gradient(180deg,var(--bg-1),var(--bg-0) 60%);
   background-color:var(--bg-0);background-attachment:fixed;overflow-x:hidden;
 }
+body.locked{overflow:hidden}
 a{color:inherit}
+button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--soft);outline-offset:3px}
 .bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .bg svg{position:absolute;left:50%;top:-6vh;width:max(140vw,900px);height:auto;transform:translateX(-50%)}
 .bg line{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+
+/* ---------- 3D intro ---------- */
+#intro{position:fixed;inset:0;z-index:50;
+  background:radial-gradient(70% 45% at 50% 42%,var(--glow) 0%,transparent 70%),linear-gradient(180deg,var(--bg-1),var(--bg-0));background-color:var(--bg-0)}
+#intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#introCap{position:absolute;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));text-align:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);opacity:0}
+#skip{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  background:none;border:1px solid var(--line);padding:8px 14px;cursor:pointer;color:var(--muted);
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+#skip:hover{color:var(--ink)}
 
 .wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding-block:36px 28px;
   padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));
@@ -59,7 +73,7 @@ a{color:inherit}
 .name b{display:block;font-weight:800;font-size:30px;letter-spacing:.06em}
 .name span{display:block;margin-top:8px;font-weight:400;font-size:11.5px;letter-spacing:.42em;padding-left:.42em;color:var(--soft)}
 .tag{margin:4px 0 0;font-size:14.5px;color:var(--ink);max-width:32ch;text-wrap:balance}
-.areas{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.areas{margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
 .areas li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);border:1px solid var(--line);padding:5px 9px}
 .open{margin:0;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
 .open b{color:var(--ok);font-weight:700}
@@ -77,21 +91,38 @@ a{color:inherit}
   transition:background .25s,transform .25s;
 }
 .lk:hover{background:var(--tile-hi);transform:translateY(-2px)}
-.lk .ic{width:40px;height:40px;display:grid;place-items:center;background:rgba(169,193,224,.12);color:var(--soft);
+/* ledger rule: a pen line drawn across each entry as it is "posted" */
+.lk::before{content:"";position:absolute;left:12px;right:0;top:0;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.2,.8,.2,1);opacity:.8}
+.lk.posted::before{transform:scaleX(1)}
+.lk .ic{position:relative;width:40px;height:40px;overflow:hidden;background:rgba(169,193,224,.12);color:var(--soft);
   clip-path:polygon(50% 0,100% 24.5%,100% 75.5%,50% 100%,0 75.5%,0 24.5%)}
-.lk .ic svg{width:19px;height:19px}
+.lk .ic>svg{position:absolute;left:10.5px;top:10.5px;width:19px;height:19px;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+/* odometer: figures roll like a calculator and stop on the gold check, "conferido" */
+.odo{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;transform:translateY(40px);
+  font-family:var(--mono);font-weight:500;font-size:14px;color:var(--soft);transition:transform .9s cubic-bezier(.25,.9,.25,1)}
+.odo i{flex:none;height:40px;display:grid;place-items:center;font-style:normal}
+.odo i:last-child{color:var(--gold);font-size:17px;font-weight:700}
+.lk:hover .ic>svg,.lk.roll .ic>svg{transform:translateY(-40px)}
+.lk:hover .odo,.lk.roll .odo{transform:translateY(-240px)}
 .lk .tx{min-width:0;display:flex;flex-direction:column}
 .lk .tx b{font-size:14.5px;font-weight:700}
 .lk .tx small{font-size:12px;color:var(--muted);line-height:1.4}
 .lk .ar{width:18px;height:18px;color:var(--soft);transition:transform .25s}
 .lk:hover .ar{transform:translateX(3px)}
-.lk.main{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.lk.main{background:var(--btn);color:var(--btn-ink);border-color:var(--btn);padding-top:26px}
 .lk.main .ic{background:var(--btn-ink);color:var(--btn)}
+.lk.main .odo{color:var(--btn)}
 .lk.main .tx small{color:#4C5B73}
 .lk.main .ar{color:var(--btn-ink)}
 .lk.main::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;
   background:linear-gradient(100deg,transparent,rgba(27,45,73,.14),transparent);transform:skewX(-31.6deg);animation:sweep 4.5s 1.5s infinite}
 @keyframes sweep{0%,70%{left:-60%}100%{left:130%}}
+/* calculator tape on the main button: debits always equal credits */
+.tape{position:absolute;left:12px;right:0;top:0;height:18px;overflow:hidden;border-bottom:1px dashed rgba(14,26,44,.18);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;line-height:18px;color:#5B6A80;white-space:nowrap}
+.tape span{display:inline-block;padding-left:100%;animation:tape 16s linear infinite}
+@keyframes tape{to{transform:translateX(-100%)}}
+.tape b{color:#1F7A50;font-weight:500}
 .group{margin:8px 0 2px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
 .group::after{content:"";flex:1;height:1px;background:var(--line)}
 
@@ -110,10 +141,14 @@ a{color:inherit}
 .who .go{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:700;color:var(--soft)}
 .who .go svg{width:13px;height:13px}
 
-.foot{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.foot{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+.foot button{background:none;border:0;padding:4px 0;cursor:pointer;color:var(--soft);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em}
+.foot button:hover{color:var(--ink)}
 
-.rv{will-change:transform,opacity}
-@media (prefers-reduced-motion:reduce){.lk.main::after,.open .dot{animation:none}}
+@media (prefers-reduced-motion:reduce){
+  .lk.main::after,.open .dot,.tape span{animation:none}
+  .odo,.lk .ic>svg,.lk::before{transition:none}
+}
 </style>
 </head>
 <body>
@@ -131,6 +166,12 @@ a{color:inherit}
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   </defs>
 </svg>
+
+<div id="intro" hidden aria-hidden="true">
+  <canvas id="cv"></canvas>
+  <p id="introCap">O caduceu da contabilidade</p>
+  <button id="skip" type="button">Pular</button>
+</div>
 
 <div class="bg" aria-hidden="true">
   <svg viewBox="130 150 820 700" preserveAspectRatio="xMidYMin meet">
@@ -157,6 +198,7 @@ a{color:inherit}
 
   <ul class="links">
     <li class="rv"><a class="lk main" data-wa="Olá! Vim pelo Instagram da Mathos Contabilidade e quero conversar." href="#" target="_blank" rel="noopener">
+      <span class="tape" aria-hidden="true"><span>DÉBITO 1.250,00 · CRÉDITO 1.250,00 · SALDO 0,00 <b>✓ CONFERIDO</b> · DAS EM DIA <b>✓</b> · NOTA EMITIDA <b>✓</b> · DÉBITO 380,00 · CRÉDITO 380,00 · SALDO 0,00 <b>✓ CONFERIDO</b></span></span>
       <span class="ic"><svg><use href="#i-wa"/></svg></span>
       <span class="tx"><b>Falar no WhatsApp</b><small>Resposta direta com o contador</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
@@ -203,10 +245,12 @@ a{color:inherit}
   <footer class="foot rv">
     <span>@mathoscontabilidade</span>
     <span>© <span id="yr">2026</span> Mathos Contabilidade</span>
+    <button type="button" id="replay">Ver abertura</button>
   </footer>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ===== Edite aqui ===== */
 const CONTATO = {
@@ -220,6 +264,7 @@ const CONTATO = {
 const $ = s => document.querySelector(s);
 const digits = s => s.replace(/\D/g, "");
 const waLink = msg => `https://wa.me/${digits(CONTATO.whatsapp)}?text=${encodeURIComponent(msg)}`;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 document.querySelectorAll("[data-wa]").forEach(a => a.href = waLink(a.dataset.wa));
 $("#lkSite").href = "https://" + CONTATO.site;
@@ -236,18 +281,239 @@ $("#openTxt").textContent = open ? "Aberto agora" : "Fechado agora";
 $("#openNow").classList.toggle("closed", !open);
 $("#openHrs").textContent = `Seg a sex · ${pad(CONTATO.abre)} – ${pad(CONTATO.fecha)}`;
 
-/* entrance: the logo pieces snap together, then the links rise in. Everything is visible without JS. */
-if (window.gsap && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  const P = n => document.querySelector(`[data-p="${n}"]`);
-  const from = {
-    crown: { y: -70, rotation: -10 }, legL: { x: -90, rotation: -14 }, legR: { x: 90, rotation: 14 },
-    core: { y: 50, scale: .8 }, base: { y: 80 }
+/* ---- buttons: each entry gets an odometer that rolls figures and stops on a check ---- */
+const lks = [...document.querySelectorAll(".lk")];
+lks.forEach(a => {
+  const o = document.createElement("span");
+  o.className = "odo"; o.setAttribute("aria-hidden", "true");
+  o.innerHTML = "<i>0</i><i>3</i><i>7</i><i>1</i><i>9</i><i>4</i><i>✓</i>";
+  a.querySelector(".ic").append(o);
+});
+
+/* the list is "posted" like a ledger: a gold rule runs across each entry, its figures roll to ✓, then settle */
+function postLedger(){
+  lks.forEach((a, i) => {
+    setTimeout(() => { a.classList.add("posted", "roll"); }, 120 * i);
+    setTimeout(() => { a.classList.remove("roll"); }, 120 * i + 1300);
+  });
+}
+
+function revealPage(){
+  document.body.classList.remove("locked");
+  if (window.gsap && !reduce) {
+    gsap.fromTo(".rv", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .6, ease: "expo.out", stagger: .045, clearProps: "transform,opacity" });
+    setTimeout(postLedger, 450);
+  } else {
+    lks.forEach(a => a.classList.add("posted"));
+  }
+}
+
+/* ===== 3D intro: a serpent coils up the staff, the caduceus spins, and its pieces lock into the Mathos M ===== */
+const intro = $("#intro");
+let introTl = null, stopRender = null;
+
+const POLY = {
+  crown: [[427,317],[491,357],[491,319],[540,289],[588,319],[588,357],[653,317],[653,364],[540,434],[427,364]],
+  legL:  [[330,354],[427,413.6],[427,705],[330,645]],
+  core:  [[427,413.6],[540,483],[653,413.6],[653,511],[588,551],[588,612],[491,612],[491,551],[427,511]],
+  legR:  [[653,413.6],[749,354],[749,645],[653,705]],
+  base:  [[491,661],[588,661],[588,760],[540,790],[491,760]]
+};
+/* where each logo piece sits while it is part of the caduceus (world units, logo is ~5 units tall) */
+const CADUCEU = {
+  crown: { x: 0,    y: .84,  r: 0,             s: .8 },   // elmo
+  legL:  { x: -.34, y: 2.14, r: 50 * Math.PI/180,  s: .74 },  // asa
+  legR:  { x: .34,  y: 2.14, r: -50 * Math.PI/180, s: .74 },  // asa
+  core:  { x: 0,    y: .70,  r: 0,             s: .9 },   // tocha
+  base:  { x: 0,    y: -.58, r: 0,             s: .7 }    // ponta do bastão
+};
+
+function playIntro(){
+  if (!window.THREE || !window.gsap || reduce) return false;
+  const canvas = $("#cv");
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch (e) { return false; }
+  if (!renderer.getContext()) return false;
+
+  intro.hidden = false; intro.style.opacity = 1;
+  document.body.classList.add("locked");
+  scrollTo(0, 0);
+  gsap.set(".rv", { opacity: 0 });
+  gsap.set("#mark", { opacity: 0 });
+
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  const FOV = 35;
+  const camera = new THREE.PerspectiveCamera(FOV, 1, .1, 100);
+  const tanH = Math.tan(FOV * Math.PI / 360);
+  function fit(){
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.position.z = Math.max(13, 6.2 / (2 * tanH * camera.aspect));
+    camera.updateProjectionMatrix();
+  }
+  fit(); addEventListener("resize", fit);
+
+  scene.add(new THREE.AmbientLight(0xffffff, .55));
+  const key = new THREE.DirectionalLight(0xffffff, 1.05); key.position.set(-4, 6, 8); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x86a6ce, .9); rim.position.set(5, -2, -6); scene.add(rim);
+  const sweep = new THREE.PointLight(0xffffff, 0, 14); sweep.position.set(-7, 1, 4); scene.add(sweep);
+
+  const mInk  = new THREE.MeshStandardMaterial({ color: 0xF2F5FA, metalness: .2,  roughness: .38 });
+  const mSoft = new THREE.MeshStandardMaterial({ color: 0xA9C1E0, metalness: .3,  roughness: .34 });
+  const mGold = new THREE.MeshStandardMaterial({ color: 0xC8A45E, metalness: .55, roughness: .3 });
+
+  const root = new THREE.Group(); scene.add(root);
+
+  /* logo pieces, each centred on itself so it can turn around its own middle */
+  const piece = {};
+  for (const [k, pts] of Object.entries(POLY)) {
+    const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2((x - 540) / 100, -(y - 540) / 100)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: .42, bevelEnabled: false });
+    g.computeBoundingBox();
+    const c = new THREE.Vector3(); g.boundingBox.getCenter(c);
+    g.translate(-c.x, -c.y, -c.z);
+    const m = new THREE.Mesh(g, k === "crown" || k === "base" ? mSoft : mInk);
+    m.userData.home = new THREE.Vector3(c.x, c.y, 0);
+    root.add(m); piece[k] = m;
+  }
+  const toCaduceu = k => {
+    const m = piece[k], c = CADUCEU[k], h = m.userData.home;
+    m.position.set(h.x + c.x, h.y + c.y, 0); m.rotation.set(0, 0, c.r); m.scale.setScalar(c.s);
   };
-  const tl = gsap.timeline({ defaults: { ease: "back.out(1.7)" } });
-  Object.entries(from).forEach(([k, v], i) =>
-    tl.from(P(k), { ...v, opacity: 0, duration: .6, transformOrigin: "50% 50%" }, i * .06));
-  tl.fromTo("#mark", { scale: 1.08 }, { scale: 1, duration: .5, ease: "elastic.out(1,.45)" }, .55)
-    .from(".rv", { opacity: 0, y: 18, duration: .6, ease: "expo.out", stagger: .045 }, .35);
+  Object.keys(piece).forEach(toCaduceu);
+
+  /* staff, grown from its foot */
+  const staffG = new THREE.CylinderGeometry(.085, .085, 3.55, 24); staffG.translate(0, 3.55 / 2, 0);
+  const staff = new THREE.Mesh(staffG, mSoft); staff.position.y = -2.45; root.add(staff);
+
+  /* two serpents: a tapered tube along a helix, drawn from the tail up so they visibly coil */
+  class Helix extends THREE.Curve {
+    constructor(dir){ super(); this.dir = dir; }
+    getPoint(t, out = new THREE.Vector3()){
+      // the two serpents turn in opposite directions, so they cross in front of the staff like the classic caduceus
+      const y = -2.25 + t * 2.7;
+      const a = Math.PI / 2 + t * 2.25 * Math.PI * 2;
+      const r = .46 * (1 - .1 * t) + (t > .86 ? (t - .86) * 2.6 : 0);   // the heads lift away from the staff
+      return out.set(this.dir * Math.cos(a) * r, y, Math.sin(a) * r);
+    }
+  }
+  const SEG = 260, RAD = 12;
+  const snakes = [1, -1].map(dir => {
+    const curve = new Helix(dir);
+    const g = new THREE.TubeGeometry(curve, SEG, .11, RAD, false);
+    const pos = g.attributes.position, c = new THREE.Vector3(), v = new THREE.Vector3();
+    for (let i = 0; i <= SEG; i++) {
+      const t = i / SEG, f = t < .22 ? .3 + .7 * (t / .22) : 1;     // thin tail
+      curve.getPointAt(t, c);
+      for (let j = 0; j <= RAD; j++) {
+        const k = i * (RAD + 1) + j;
+        v.fromBufferAttribute(pos, k).sub(c).multiplyScalar(f).add(c);
+        pos.setXYZ(k, v.x, v.y, v.z);
+      }
+    }
+    g.computeVertexNormals();
+    g.setDrawRange(0, 0);
+    const body = new THREE.Mesh(g, mGold);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.19, 20, 14), mGold);
+    head.scale.set(1, .7, 1.55); head.visible = false;
+    const grp = new THREE.Group(); grp.add(body, head); root.add(grp);
+    return { curve, g, body, head, grp };
+  });
+  const coil = { p: 0 };
+  const tmp = new THREE.Vector3(), tng = new THREE.Vector3();
+  function updateCoil(){
+    snakes.forEach(s => {
+      const n = Math.max(1, Math.floor(coil.p * SEG));
+      s.g.setDrawRange(0, n * RAD * 6);
+      s.head.visible = coil.p > .02;
+      const t = Math.min(coil.p, .999);
+      s.curve.getPointAt(t, tmp); s.curve.getTangentAt(t, tng);
+      s.head.position.copy(tmp).addScaledVector(tng, .12);
+      s.head.lookAt(tmp.clone().add(tng));
+    });
+  }
+  updateCoil();
+
+  root.rotation.set(.12, -.6, 0);
+  staff.scale.y = 0;
+  Object.values(piece).forEach(m => m.scale.setScalar(0));
+
+  /* render while the intro is on screen */
+  let alive = true;
+  const tick = () => { if (alive) renderer.render(scene, camera); };
+  gsap.ticker.add(tick);
+  stopRender = () => { alive = false; gsap.ticker.remove(tick); removeEventListener("resize", fit); renderer.dispose(); };
+
+  const C = CADUCEU;
+  const tl = gsap.timeline({ onComplete: endIntro });
+  introTl = tl;
+  tl
+    // the staff rises and the tip lands
+    .to(staff.scale, { y: 1, duration: .8, ease: "expo.out" }, 0)
+    .to(piece.base.scale, { x: C.base.s, y: C.base.s, z: C.base.s, duration: .6, ease: "back.out(2)" }, .2)
+    .to("#introCap", { opacity: 1, duration: .6 }, .3)
+    // the serpents coil up around it
+    .to(coil, { p: 1, duration: 2, ease: "power1.inOut", onUpdate: updateCoil }, .35)
+    .to(root.rotation, { y: .35, duration: 2.6, ease: "sine.inOut" }, 0)
+    // torch, helmet and wings complete the caduceus
+    .to(piece.core.scale, { x: C.core.s, y: C.core.s, z: C.core.s, duration: .6, ease: "back.out(2)" }, 1.7)
+    .to(piece.crown.scale, { x: C.crown.s, y: C.crown.s, z: C.crown.s, duration: .6, ease: "back.out(2)" }, 1.9)
+    .from(piece.crown.position, { y: "+=1.2", duration: .7, ease: "expo.out" }, 1.9)
+    .to([piece.legL.scale, piece.legR.scale], { x: C.legL.s, y: C.legL.s, z: C.legL.s, duration: .7, ease: "back.out(1.7)" }, 2.1)
+    .from(piece.legL.rotation, { z: 0, duration: .8, ease: "back.out(1.7)" }, 2.1)
+    .from(piece.legR.rotation, { z: 0, duration: .8, ease: "back.out(1.7)" }, 2.1)
+    .to(piece.legL.rotation, { z: 30 * Math.PI/180, duration: .22, ease: "sine.inOut", yoyo: true, repeat: 3 }, 2.9)
+    .to(piece.legR.rotation, { z: -30 * Math.PI/180, duration: .22, ease: "sine.inOut", yoyo: true, repeat: 3 }, 2.9)
+    .to("#introCap", { opacity: 0, duration: .4 }, 3.3)
+    // it spins, and while it spins the serpents and staff withdraw and the pieces lock into the M
+    .to(root.rotation, { y: Math.PI * 6, x: 0, duration: 2.1, ease: "power3.inOut" }, 3.5)
+    .to(snakes.map(s => s.grp.scale), { x: .01, z: .01, duration: .7, ease: "power2.in" }, 3.9)
+    .to(staff.scale, { y: 0, duration: .6, ease: "power2.in" }, 4.0)
+    .add(() => snakes.forEach(s => s.grp.visible = false), 4.7);
+  Object.entries(piece).forEach(([k, m]) => {
+    const h = m.userData.home;
+    tl.to(m.position, { x: h.x, y: h.y, z: 0, duration: 1, ease: "power2.inOut" }, 4.1)
+      .to(m.rotation, { z: 0, duration: 1, ease: "power2.inOut" }, 4.1)
+      .to(m.scale, { x: 1, y: 1, z: 1, duration: 1, ease: "power2.inOut" }, 4.1);
+  });
+  tl
+    // the mark settles, a light runs across it
+    .to(root.scale, { x: 1.06, y: 1.06, z: 1.06, duration: .14, ease: "power2.out" }, 5.6)
+    .to(root.scale, { x: 1, y: 1, z: 1, duration: .6, ease: "elastic.out(1,.45)" }, 5.74)
+    .to(sweep, { intensity: 2.2, duration: .3 }, 5.6)
+    .to(sweep.position, { x: 7, duration: 1, ease: "power2.inOut" }, 5.6)
+    .to(sweep, { intensity: 0, duration: .3 }, 6.4)
+    // hand over to the logo in the page header
+    .add(() => {
+      const r = $("#mark").getBoundingClientRect();
+      const ppu = innerHeight / (2 * camera.position.z * tanH);      // pixels per world unit at z = 0
+      const s = (r.height * 501 / 509) / (5.01 * ppu);
+      tl.to(root.position, { x: (r.left + r.width / 2 - innerWidth / 2) / ppu, y: -(r.top + r.height / 2 - innerHeight / 2) / ppu, duration: .9, ease: "expo.inOut" }, 6.55)
+        .to(root.scale, { x: s, y: s, z: s, duration: .9, ease: "expo.inOut" }, 6.55);
+    }, 6.5)
+    .to({}, { duration: .95 }, 6.55)
+    .to(intro, { opacity: 0, duration: .45, ease: "power1.out" }, 7.45);
+  return true;
+}
+
+function endIntro(){
+  if (stopRender) { stopRender(); stopRender = null; }
+  intro.hidden = true;
+  gsap.set("#mark", { opacity: 1 });
+  revealPage();
+}
+
+$("#skip").onclick = () => { if (introTl) introTl.progress(1); };
+$("#replay").onclick = () => { if (introTl) introTl.kill(); if (stopRender) { stopRender(); stopRender = null; } lks.forEach(a => a.classList.remove("posted")); if (!playIntro()) revealPage(); };
+
+/* without WebGL or with reduced motion the page simply appears; with them, the 3D opening plays first */
+if (!playIntro()) {
+  if (window.gsap && !reduce) {
+    gsap.from("#mark", { opacity: 0, scale: .9, duration: .6, ease: "back.out(1.7)" });
+    revealPage();
+  } else revealPage();
 }
 </script>
 </body>
