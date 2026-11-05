@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Painel · Mathos</title>
+<meta name="theme-color" content="#0A1322">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one navy panel stack, KPIs first, then the daily trend, then where the clicks went.
+   Series colours are validated for the dark surface: Bio = blue, Cartão = gold (the brand's two accents). */
+:root{
+  --bg:#0A1322; --panel:#101B2E; --panel-2:#16243A; --line:rgba(169,193,224,.14); --grid:rgba(169,193,224,.09);
+  --ink:#F2F5FA; --ink-2:#C3D1E4; --muted:#8A9BB4;
+  --bio:#5E95DE; --card:#B5862E; --single:#7FA3CF;
+  --ok:#4CC38A; --warn:#E0B24A; --bad:#E06A5A;
+  --f:"Montserrat",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.5;min-height:100vh}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--single);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+.mono{font-family:var(--mono)}
+
+/* login */
+.login{min-height:80vh;display:grid;place-items:center}
+.login form{width:min(340px,100%);display:flex;flex-direction:column;gap:14px;background:var(--panel);padding:26px;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.login svg{width:44px;height:auto;align-self:center}
+.login h1{margin:0;text-align:center;font-size:18px;font-weight:800}
+.login p{margin:0;text-align:center;color:var(--muted);font-size:13px}
+.login label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.login input{background:var(--panel-2);border:1px solid var(--line);padding:11px 12px;border-radius:0}
+.login button{background:var(--ink);color:#0E1A2C;border:0;padding:12px;font-weight:700;cursor:pointer}
+.msg{font-size:13px;color:var(--warn);text-align:center;min-height:1.3em}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:26px;height:auto}
+.brand b{font-weight:800;letter-spacing:.06em}
+.brand span{color:var(--muted);font-size:12px;margin-left:4px}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{background:none;border:0;padding:7px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#0E1A2C}
+.ghost{background:none;border:1px solid var(--line);padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer}
+.ghost:hover{color:var(--ink)}
+.updated{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* cards */
+.box{background:var(--panel);padding:18px;min-width:0}
+.box h2{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.box .sub{margin:0 0 14px;font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* KPI tiles */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:760px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+.kpi .k i{width:8px;height:8px;flex:none}
+.kpi .v{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .d{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* line chart */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 8px;font-size:12px;color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:2px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.chart .lbl{fill:var(--ink-2);font-size:11px;font-weight:600}
+.tip{position:absolute;pointer-events:none;background:#0B1424;border:1px solid var(--line);padding:8px 10px;font-size:12px;
+  white-space:nowrap;transform:translate(-50%,-100%);margin-top:-10px;z-index:3}
+.tip b{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:500;margin-bottom:3px}
+.tip div{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.tip i{width:8px;height:8px}
+details.tbl{margin-top:10px}
+details.tbl summary{cursor:pointer;font-size:12px;color:var(--muted)}
+.tblw{overflow-x:auto;max-height:260px;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel)}
+
+/* bar lists */
+.bars{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.bars li{display:grid;grid-template-columns:minmax(0,1.3fr) 2fr 44px;align-items:center;gap:10px;font-size:12.5px}
+.bars .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.bars .t{height:10px;background:var(--grid);position:relative}
+.bars .t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;min-width:2px}
+.bars .c{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+@media (max-width:560px){.bars li{grid-template-columns:1fr 44px;row-gap:4px}.bars .n{grid-column:1/-1;white-space:normal}}
+.empty{color:var(--muted);font-size:12.5px;margin:0}
+
+/* device split */
+.split{display:flex;height:14px;gap:2px;margin:6px 0 10px}
+.split i{display:block;height:100%}
+.split i:first-child{border-radius:4px 0 0 4px}.split i:last-child{border-radius:0 4px 4px 0}
+
+/* heatmap */
+.heat{display:grid;grid-template-columns:34px repeat(24,minmax(0,1fr));gap:2px;font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+.heat .c{height:18px}
+@media (max-width:560px){.heat .c{height:11px}}
+.heat .h{text-align:center}
+.heat .w{display:flex;align-items:center}
+.scale{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--muted)}
+.scale i{display:block;width:120px;height:8px;background:linear-gradient(90deg,#16243A,#8DB6EE)}
+
+.note{font-size:12px;color:var(--muted);margin:0}
+.alert{background:var(--panel);border-left:3px solid var(--warn);padding:14px 16px;font-size:13px;color:var(--ink-2)}
+.alert b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="mark" viewBox="326 285 427 509">
+    <polygon fill="#A9C1E0" points="427,317 491,357 491,319 540,289 588,319 588,357 653,317 653,364 540,434 427,364"/>
+    <polygon fill="#F2F5FA" points="330,354 540,483 749,354 749,645 653,705 653,511 588,551 588,612 491,612 491,551 427,511 427,705 330,645"/>
+    <polygon fill="#A9C1E0" points="491,661 588,661 588,760 540,790 491,760"/>
+  </symbol>
+</defs></svg>
+
+<section class="login" id="login">
+  <form id="loginForm">
+    <svg viewBox="0 0 427 509" width="44" height="52" aria-hidden="true"><use href="#mark" width="100%" height="100%"/></svg>
+    <h1>Painel Mathos</h1>
+    <p>Visitas e cliques do cartão do Hugo e da bio do Instagram</p>
+    <label for="pw">Senha<input id="pw" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Entrar</button>
+    <p class="msg" id="loginMsg" role="alert"></p>
+  </form>
+</section>
+
+<main class="wrap" id="app" hidden>
+  <header class="top">
+    <div class="brand"><svg viewBox="0 0 427 509" width="26" height="31" aria-hidden="true"><use href="#mark" width="100%" height="100%"/></svg><b>MATHOS</b><span>Painel</span></div>
+    <div class="ctrl">
+      <div class="seg" role="group" aria-label="Período">
+        <button type="button" data-days="7" aria-pressed="false">7 dias</button>
+        <button type="button" data-days="30" aria-pressed="true">30 dias</button>
+        <button type="button" data-days="90" aria-pressed="false">90 dias</button>
+      </div>
+      <button type="button" class="ghost" id="refresh">Atualizar</button>
+      <button type="button" class="ghost" id="logout">Sair</button>
+    </div>
+  </header>
+  <p class="updated" id="updated"></p>
+  <div class="alert" id="alert" hidden></div>
+
+  <section class="kpis" aria-label="Resumo do período">
+    <div class="kpi"><span class="k"><i style="background:var(--bio)"></i>Visitas na bio</span><span class="v" id="kBio">0</span><span class="d" id="kBioU"></span></div>
+    <div class="kpi"><span class="k"><i style="background:var(--card)"></i>Visitas no cartão</span><span class="v" id="kCard">0</span><span class="d" id="kCardU"></span></div>
+    <div class="kpi"><span class="k">Pessoas diferentes</span><span class="v" id="kUniq">0</span><span class="d">somando as duas páginas</span></div>
+    <div class="kpi"><span class="k">Cliques pro WhatsApp</span><span class="v" id="kWa">0</span><span class="d" id="kWaRate"></span></div>
+  </section>
+
+  <section class="box">
+    <h2>Visitas por dia</h2>
+    <p class="sub">Quantas vezes cada página foi aberta</p>
+    <div class="legend"><span><i style="background:var(--bio)"></i>Bio do Instagram</span><span><i style="background:var(--card)"></i>Cartão do Hugo</span></div>
+    <div class="chart" id="trend"></div>
+    <details class="tbl"><summary>Ver em tabela</summary><div class="tblw"><table id="trendTbl"></table></div></details>
+  </section>
+
+  <div class="grid2">
+    <section class="box">
+      <h2>Cliques na bio</h2>
+      <p class="sub">Qual botão as pessoas mais tocam</p>
+      <ul class="bars" id="bBio"></ul>
+    </section>
+    <section class="box">
+      <h2>Cliques no cartão</h2>
+      <p class="sub">O que as pessoas fazem no cartão do Hugo</p>
+      <ul class="bars" id="bCard"></ul>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="box">
+      <h2>De onde vêm</h2>
+      <p class="sub">Origem das visitas, nas duas páginas</p>
+      <ul class="bars" id="bSrc"></ul>
+    </section>
+    <section class="box">
+      <h2>Aparelho</h2>
+      <p class="sub">Celular ou computador, nas duas páginas</p>
+      <div class="split" id="devSplit" role="img"></div>
+      <div class="legend" id="devLegend"></div>
+    </section>
+  </div>
+
+  <section class="box">
+    <h2>Horários de maior movimento</h2>
+    <p class="sub">Visitas por dia da semana e hora (horário de Brasília), desde o início da contagem</p>
+    <div class="heat" id="heat"></div>
+    <div class="scale"><span>menos</span><i></i><span>mais</span></div>
+  </section>
+
+  <p class="note">Contagem anônima: nenhuma informação pessoal é guardada. "Pessoas diferentes" é uma estimativa por aparelho.</p>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const KEY = "mathos_admin";
+let pw = "";
+try { pw = sessionStorage.getItem(KEY) || ""; } catch {}
+let days = 30;
+
+const LABEL = {
+  bio: { wa_geral: "Falar no WhatsApp", wa_mei: "Sou MEI", wa_simples: "Tenho empresa no Simples", wa_abrir: "Quero abrir minha empresa",
+         wa_trocar: "Quero trocar de contador", cartao: "Cartão do Hugo", ig_hugo: "Instagram do Hugo", site: "Site da Mathos", ligar: "Ligar" },
+  card: { whatsapp: "Conversar no WhatsApp", fab: "WhatsApp (botão flutuante)", form_enviar: "Formulário pelo WhatsApp", svc_mei: "Falar sobre MEI",
+          svc_simples: "Falar sobre o Simples", ligar: "Ligar", instagram: "Instagram do Hugo", ig_mathos: "Instagram da Mathos", site: "Site",
+          qr: "QR Code", salvar_contato: "Salvar contato", compartilhar: "Compartilhar" }
+};
+const WA = { bio: k => k.startsWith("wa_"), card: k => ["whatsapp", "fab", "form_enviar", "svc_mei", "svc_simples"].includes(k) };
+const SRC = { instagram: "Instagram", facebook: "Facebook", whatsapp: "WhatsApp", google: "Google", interno: "Entre as páginas", direto: "Link direto ou QR Code", outros: "Outros sites" };
+const fmt = n => new Intl.NumberFormat("pt-BR").format(n);
+const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "–";
+const dLabel = d => d.slice(8, 10) + "/" + d.slice(5, 7);
+
+/* ---------- auth ---------- */
+$("#loginForm").addEventListener("submit", e => { e.preventDefault(); pw = $("#pw").value; load(true); });
+$("#logout").onclick = () => { pw = ""; try { sessionStorage.removeItem(KEY); } catch {} $("#app").hidden = true; $("#login").hidden = false; $("#pw").value = ""; };
+$("#refresh").onclick = () => load();
+document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => {
+  days = +b.dataset.days;
+  document.querySelectorAll("[data-days]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  load();
+});
+
+async function load(fromLogin){
+  if (!pw) { $("#login").hidden = false; return; }
+  let r;
+  try { r = await fetch(`/api/stats?days=${days}`, { headers: { "x-admin-key": pw } }); }
+  catch { return showError("Sem conexão. Confira a internet e tente de novo."); }
+  if (r.status === 401) { pw = ""; $("#app").hidden = true; $("#login").hidden = false; $("#loginMsg").textContent = fromLogin ? "Senha incorreta." : "Faça login de novo."; return; }
+  if (r.status === 503) {
+    const { error } = await r.json().catch(() => ({}));
+    if (error === "no-password") return showLoginMsg("A senha do painel ainda não foi criada na Vercel (variável ADMIN_PASSWORD).");
+    if (error === "no-db") { enter(); return showError("<b>Banco de dados não conectado.</b> Na Vercel, abra o projeto mathos-bio → Storage → conecte o Upstash Redis e publique de novo."); }
+  }
+  if (!r.ok) { enter(); return showError("Não foi possível carregar os números agora. Tente de novo em instantes."); }
+  enter();
+  $("#alert").hidden = true;
+  render(await r.json());
+  $("#updated").textContent = "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function enter(){ try { sessionStorage.setItem(KEY, pw); } catch {} $("#login").hidden = true; $("#app").hidden = false; }
+function showLoginMsg(t){ $("#login").hidden = false; $("#app").hidden = true; $("#loginMsg").textContent = t; }
+function showError(html){ const a = $("#alert"); a.innerHTML = html; a.hidden = false; }
+
+/* ---------- render ---------- */
+function render(data){
+  const D = data.days;
+  const sum = (site, ev) => D.reduce((t, d) => t + (d.counts[`${site}:${ev}`] || 0), 0);
+  const vBio = sum("bio", "view"), vCard = sum("card", "view");
+
+  const clicks = { bio: {}, card: {} };
+  D.forEach(d => Object.entries(d.counts).forEach(([k, v]) => {
+    const [site, type, name] = k.split(":");
+    if (type === "click") clicks[site][name] = (clicks[site][name] || 0) + v;
+  }));
+  const waClicks = ["bio", "card"].reduce((t, s) => t + Object.entries(clicks[s]).filter(([k]) => WA[s](k)).reduce((a, [, v]) => a + v, 0), 0);
+
+  $("#kBio").textContent = fmt(vBio);
+  $("#kCard").textContent = fmt(vCard);
+  $("#kBioU").textContent = fmt(data.uniqueBio) + " pessoas diferentes";
+  $("#kCardU").textContent = fmt(data.uniqueCard) + " pessoas diferentes";
+  $("#kUniq").textContent = fmt(data.uniqueTotal);
+  $("#kWa").textContent = fmt(waClicks);
+  $("#kWaRate").textContent = (vBio + vCard) ? `${pct(waClicks, vBio + vCard)} em relação às visitas` : "sem visitas no período";
+
+  trend(D);
+  bars("#bBio", clicks.bio, LABEL.bio, "var(--bio)");
+  bars("#bCard", clicks.card, LABEL.card, "var(--card)");
+
+  const src = {}, dev = { mobile: 0, desktop: 0 };
+  D.forEach(d => {
+    Object.entries(d.src).forEach(([k, v]) => { const n = k.split(":")[1]; src[n] = (src[n] || 0) + v; });
+    Object.entries(d.dev).forEach(([k, v]) => { const n = k.split(":")[1]; dev[n] = (dev[n] || 0) + v; });
+  });
+  bars("#bSrc", src, SRC, "var(--single)");
+  device(dev);
+  heat(data.heat);
+}
+
+function bars(sel, obj, labels, color){
+  const el = $(sel);
+  const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  if (!rows.length) { el.innerHTML = '<li class="empty">Nenhum clique registrado no período.</li>'; return; }
+  const max = rows[0][1];
+  el.innerHTML = rows.map(([k, v]) => {
+    const name = labels[k] || k;
+    return `<li title="${name}: ${fmt(v)}"><span class="n">${name}</span><span class="t"><i style="width:${Math.max(2, v / max * 100)}%;background:${color}"></i></span><span class="c">${fmt(v)}</span></li>`;
+  }).join("");
+}
+
+function device(dev){
+  const t = dev.mobile + dev.desktop;
+  const split = $("#devSplit"), leg = $("#devLegend");
+  if (!t) { split.innerHTML = ""; leg.innerHTML = '<span class="empty">Sem visitas no período.</span>'; return; }
+  const parts = [["Celular", dev.mobile, "var(--bio)"], ["Computador", dev.desktop, "var(--card)"]].filter(p => p[1]);
+  split.innerHTML = parts.map(([n, v, c]) => `<i style="width:${v / t * 100}%;background:${c}" title="${n}: ${pct(v, t)}"></i>`).join("");
+  split.setAttribute("aria-label", parts.map(([n, v]) => `${n} ${pct(v, t)}`).join(", "));
+  leg.innerHTML = parts.map(([n, v, c]) => `<span><i style="background:${c};height:8px;width:8px"></i>${n} · ${pct(v, t)} (${fmt(v)})</span>`).join("");
+}
+
+function heat(h){
+  const order = [1, 2, 3, 4, 5, 6, 0], names = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const val = (wd, hr) => (h[`bio:${wd}-${hr}`] || 0) + (h[`card:${wd}-${hr}`] || 0);
+  let max = 0;
+  order.forEach(wd => { for (let hr = 0; hr < 24; hr++) max = Math.max(max, val(wd, hr)); });
+  const lo = [22, 36, 58], hi = [141, 182, 238];   // #16243A → #8DB6EE, one hue, brighter = more in dark mode
+  const col = v => { if (!v) return "rgba(169,193,224,.05)"; const t = .15 + .85 * v / max; return `rgb(${lo.map((a, i) => Math.round(a + (hi[i] - a) * t)).join(",")})`; };
+  let html = '<span></span>';
+  for (let hr = 0; hr < 24; hr++) html += `<span class="h">${hr % 3 === 0 ? hr + "h" : ""}</span>`;
+  order.forEach((wd, i) => {
+    html += `<span class="w">${names[i]}</span>`;
+    for (let hr = 0; hr < 24; hr++) { const v = val(wd, hr); html += `<span class="c" style="background:${col(v)}" title="${names[i]}, ${hr}h: ${fmt(v)} visita${v === 1 ? "" : "s"}"></span>`; }
+  });
+  $("#heat").innerHTML = html;
+}
+
+/* line chart: two series on one axis, crosshair tooltip, direct labels at the end */
+let trendData = [];
+function trend(D){
+  trendData = D.map(d => ({ day: d.day, bio: d.counts["bio:view"] || 0, card: d.counts["card:view"] || 0 }));
+  drawTrend();
+  $("#trendTbl").innerHTML = "<thead><tr><th>Dia</th><th>Bio</th><th>Cartão</th></tr></thead><tbody>" +
+    trendData.slice().reverse().map(r => `<tr><td>${dLabel(r.day)}</td><td>${fmt(r.bio)}</td><td>${fmt(r.card)}</td></tr>`).join("") + "</tbody>";
+}
+function niceMax(v){ if (v <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v / p; return (m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+function drawTrend(){
+  const box = $("#trend"), W = box.clientWidth || 600, H = 220, L = 34, R = 74, T = 10, B = 24;
+  const n = trendData.length, max = niceMax(Math.max(1, ...trendData.map(r => Math.max(r.bio, r.card))));
+  const x = i => L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), y = v => T + (H - T - B) * (1 - v / max);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Visitas por dia: bio e cartão">`;
+  for (let k = 0; k <= 4; k++) { const v = max * k / 4, yy = y(v); s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}"/><text class="ax" x="${L - 6}" y="${yy + 3}" text-anchor="end">${fmt(v)}</text>`; }
+  const step = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - L - R) / 58))));
+  trendData.forEach((r, i) => { if ((i % step === 0 && n - 1 - i >= step * .6) || i === n - 1) s += `<text class="ax" x="${x(i)}" y="${H - 6}" text-anchor="middle">${dLabel(r.day)}</text>`; });
+  const path = k => trendData.map((r, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(r[k]).toFixed(1)}`).join("");
+  s += `<path d="${path("card")}" fill="none" stroke="var(--card)" stroke-width="2" stroke-linejoin="round"/>`;
+  s += `<path d="${path("bio")}" fill="none" stroke="var(--bio)" stroke-width="2" stroke-linejoin="round"/>`;
+  // direct labels at the line ends, nudged apart if they collide
+  const last = trendData[n - 1]; let yb = y(last.bio), yc = y(last.card);
+  if (Math.abs(yb - yc) < 14) { const m = (yb + yc) / 2; if (last.bio >= last.card) { yb = m - 7; yc = m + 7; } else { yb = m + 7; yc = m - 7; } }
+  s += `<text class="lbl" x="${W - R + 8}" y="${yb + 4}">Bio ${fmt(last.bio)}</text><text class="lbl" x="${W - R + 8}" y="${yc + 4}">Cartão ${fmt(last.card)}</text>`;
+  s += `<g id="xh" visibility="hidden"><line x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3"/><circle id="xb" r="4.5" fill="var(--bio)" stroke="var(--panel)" stroke-width="2"/><circle id="xc" r="4.5" fill="var(--card)" stroke="var(--panel)" stroke-width="2"/></g>`;
+  s += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hit"/></svg><div class="tip" id="tip" hidden></div>`;
+  box.innerHTML = s;
+  const hit = $("#hit"), xh = $("#xh"), tip = $("#tip");
+  const move = e => {
+    const rect = box.querySelector("svg").getBoundingClientRect(), px = (e.clientX - rect.left) * W / rect.width;
+    const i = Math.max(0, Math.min(n - 1, Math.round(n === 1 ? 0 : (px - L) / ((W - L - R) / (n - 1)))));
+    const r = trendData[i], xx = x(i);
+    xh.setAttribute("visibility", "visible");
+    xh.querySelector("line").setAttribute("x1", xx); xh.querySelector("line").setAttribute("x2", xx);
+    $("#xb").setAttribute("cx", xx); $("#xb").setAttribute("cy", y(r.bio));
+    $("#xc").setAttribute("cx", xx); $("#xc").setAttribute("cy", y(r.card));
+    tip.hidden = false;
+    tip.innerHTML = `<b>${dLabel(r.day)}</b><div><i style="background:var(--bio)"></i>Bio: ${fmt(r.bio)}</div><div><i style="background:var(--card)"></i>Cartão: ${fmt(r.card)}</div>`;
+    const sx = xx * rect.width / W, sy = Math.min(y(r.bio), y(r.card)) * rect.height / H;
+    tip.style.left = Math.min(Math.max(sx, 70), rect.width - 70) + "px"; tip.style.top = sy + "px";
+  };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
+  hit.addEventListener("pointerleave", () => { xh.setAttribute("visibility", "hidden"); tip.hidden = true; });
+}
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => trendData.length && drawTrend(), 150); });
+
+load();
+</script>
+</body>
+</html>

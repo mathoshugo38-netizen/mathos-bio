@@ -200,46 +200,46 @@ button{font:inherit;color:inherit}
   </header>
 
   <ul class="links">
-    <li class="rv"><a class="lk main" data-wa="Olá! Vim pelo Instagram da Mathos Contabilidade e quero conversar." href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk main" data-ev="wa_geral" data-wa="Olá! Vim pelo Instagram da Mathos Contabilidade e quero conversar." href="#" target="_blank" rel="noopener">
       <span class="tape" aria-hidden="true"><span>DÉBITO 1.250,00 · CRÉDITO 1.250,00 · SALDO 0,00 <b>✓ CONFERIDO</b> · DAS EM DIA <b>✓</b> · NOTA EMITIDA <b>✓</b> · DÉBITO 380,00 · CRÉDITO 380,00 · SALDO 0,00 <b>✓ CONFERIDO</b></span></span>
       <span class="ic"><svg><use href="#i-wa"/></svg></span>
       <span class="tx"><b>Falar no WhatsApp</b><small>Resposta direta com o contador</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
 
     <li class="group rv" aria-hidden="true">Qual é o seu caso?</li>
-    <li class="rv"><a class="lk" data-wa="Olá! Vim pelo Instagram da Mathos. Sou MEI e quero deixar meu CNPJ em dia." href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" data-ev="wa_mei" data-wa="Olá! Vim pelo Instagram da Mathos. Sou MEI e quero deixar meu CNPJ em dia." href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-user"/></svg></span>
       <span class="tx"><b>Sou MEI</b><small>DAS, declaração anual, nota fiscal e limite</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
-    <li class="rv"><a class="lk" data-wa="Olá! Vim pelo Instagram da Mathos. Tenho empresa no Simples Nacional e quero conversar sobre a contabilidade." href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" data-ev="wa_simples" data-wa="Olá! Vim pelo Instagram da Mathos. Tenho empresa no Simples Nacional e quero conversar sobre a contabilidade." href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-store"/></svg></span>
       <span class="tx"><b>Tenho empresa no Simples</b><small>DAS no anexo certo, Fator R, folha e pró-labore</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
-    <li class="rv"><a class="lk" data-wa="Olá! Vim pelo Instagram da Mathos e quero abrir minha empresa." href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" data-ev="wa_abrir" data-wa="Olá! Vim pelo Instagram da Mathos e quero abrir minha empresa." href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-plus"/></svg></span>
       <span class="tx"><b>Quero abrir minha empresa</b><small>MEI ou Microempresa, do jeito certo desde o início</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
-    <li class="rv"><a class="lk" data-wa="Olá! Vim pelo Instagram da Mathos e quero trocar de contador." href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" data-ev="wa_trocar" data-wa="Olá! Vim pelo Instagram da Mathos e quero trocar de contador." href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-swap"/></svg></span>
       <span class="tx"><b>Quero trocar de contador</b><small>A gente cuida da transição com o escritório atual</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
 
     <li class="group rv" aria-hidden="true">Mais</li>
-    <li class="rv"><a class="lk" id="lkSite" href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" id="lkSite" data-ev="site" href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-web"/></svg></span>
       <span class="tx"><b>Site da Mathos</b><small id="siteTxt">mathoscontabilidade.com.br</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
-    <li class="rv"><a class="lk" id="lkIgHugo" href="#" target="_blank" rel="noopener">
+    <li class="rv"><a class="lk" id="lkIgHugo" data-ev="ig_hugo" href="#" target="_blank" rel="noopener">
       <span class="ic"><svg><use href="#i-ig"/></svg></span>
       <span class="tx"><b>Instagram do Hugo</b><small id="igHugoTxt">@hugo.mathos</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
-    <li class="rv"><a class="lk" id="lkTel" href="#">
+    <li class="rv"><a class="lk" id="lkTel" data-ev="ligar" href="#">
       <span class="ic"><svg><use href="#i-phone"/></svg></span>
       <span class="tx"><b>Ligar</b><small id="telTxt">(62) 9 8154-9797</small></span>
       <svg class="ar"><use href="#i-arrow"/></svg></a></li>
   </ul>
 
-  <a class="who rv" id="lkCard" href="https://hugo.mathoscontabilidade.com.br" target="_blank" rel="noopener">
+  <a class="who rv" id="lkCard" data-ev="cartao" href="https://hugo.mathoscontabilidade.com.br" target="_blank" rel="noopener">
     <span class="ph"><img src="/hugo.webp" alt="Hugo Mathos" width="600" height="800"></span>
     <div class="who-tx">
       <p class="k">Quem atende</p>
@@ -290,6 +290,20 @@ const open = now.getDay() >= 1 && now.getDay() <= 5 && now.getHours() >= CONTATO
 $("#openTxt").textContent = open ? "Aberto agora" : "Fechado agora";
 $("#openNow").classList.toggle("closed", !open);
 $("#openHrs").textContent = `Seg a sex · ${pad(CONTATO.abre)} – ${pad(CONTATO.fecha)}`;
+
+
+/* ---- anonymous visit and click counting for the admin panel (no personal data) ---- */
+function track(e){
+  try {
+    let v = "";
+    try { v = localStorage.getItem("mt_id") || ""; if (!v) { v = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); localStorage.setItem("mt_id", v); } } catch {}
+    const body = JSON.stringify({ s: "bio", e, r: document.referrer.slice(0, 200), v });
+    if (navigator.sendBeacon) navigator.sendBeacon("/api/track", new Blob([body], { type: "text/plain" }));
+    else fetch("/api/track", { method: "POST", body, keepalive: true });
+  } catch {}
+}
+track("view");
+document.addEventListener("click", e => { const a = e.target.closest("[data-ev]"); if (a) track("click:" + a.dataset.ev); });
 
 /* ---- buttons: each entry gets an odometer that rolls figures and stops on a check ---- */
 const lks = [...document.querySelectorAll(".lk")];
