@@ -194,7 +194,7 @@ button{font:inherit;color:inherit}
     </svg>
     <h1 class="name rv"><b>MATHOS</b><span>CONTABILIDADE</span></h1>
     <p class="city rv">Goiânia · GO</p>
-    <p class="tag rv">Contabilidade que ajuda sua empresa a crescer.</p>
+    <p class="tag rv" id="bioFrase">Contabilidade que ajuda sua empresa a crescer.</p>
     <ul class="areas rv"><li>MEI</li><li>Simples Nacional</li><li>Fiscal</li><li>Pessoal</li><li>Contábil</li></ul>
     <p class="open rv" id="openNow"><span class="dot"></span><b id="openTxt">Aberto agora</b><span id="openHrs">Seg a sex · 08:00 – 18:00</span></p>
   </header>
@@ -240,7 +240,7 @@ button{font:inherit;color:inherit}
   </ul>
 
   <a class="who rv" id="lkCard" data-ev="cartao" href="https://hugo.mathoscontabilidade.com.br" target="_blank" rel="noopener">
-    <span class="ph"><img src="/hugo.webp" alt="Hugo Mathos" width="600" height="800"></span>
+    <span class="ph"><img id="whoImg" src="/hugo.webp" alt="Hugo Mathos" width="600" height="800"></span>
     <div class="who-tx">
       <p class="k">Quem atende</p>
       <p class="n">Hugo Mathos</p>
@@ -266,30 +266,53 @@ const CONTATO = {
   site: "www.mathoscontabilidade.com.br",
   cartao: "https://hugo.mathoscontabilidade.com.br",
   instagramHugo: "hugo.mathos",        // sem @
-  abre: 8, fecha: 18                  // horário de atendimento (seg a sex)
+  diaFim: 5,                          // 5 = seg a sex, 6 = seg a sáb
+  abre: 8, fecha: 18                  // horário de atendimento
 };
+/* these are the fallbacks: what is saved in the admin panel (/admin → Editar) replaces them on load */
 
 const $ = s => document.querySelector(s);
 const digits = s => s.replace(/\D/g, "");
 const waLink = msg => `https://wa.me/${digits(CONTATO.whatsapp)}?text=${encodeURIComponent(msg)}`;
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-document.querySelectorAll("[data-wa]").forEach(a => a.href = waLink(a.dataset.wa));
-$("#lkSite").href = "https://" + CONTATO.site;
-$("#siteTxt").textContent = CONTATO.site.replace(/^www\./, "");
-$("#lkTel").href = "tel:+55" + digits(CONTATO.telefone);
-$("#telTxt").textContent = CONTATO.telefone;
-$("#lkCard").href = CONTATO.cartao;
-$("#lkIgHugo").href = "https://instagram.com/" + CONTATO.instagramHugo;
-$("#igHugoTxt").textContent = "@" + CONTATO.instagramHugo;
-$("#yr").textContent = new Date().getFullYear();
+function render(){
+  document.querySelectorAll("[data-wa]").forEach(a => a.href = waLink(a.dataset.wa));
+  $("#lkSite").href = "https://" + CONTATO.site;
+  $("#siteTxt").textContent = CONTATO.site.replace(/^www\./, "");
+  $("#lkTel").href = "tel:+55" + digits(CONTATO.telefone).replace(/^55(?=\d{10,11}$)/, "");
+  $("#telTxt").textContent = CONTATO.telefone;
+  $("#lkCard").href = CONTATO.cartao;
+  $("#lkIgHugo").href = "https://instagram.com/" + CONTATO.instagramHugo;
+  $("#igHugoTxt").textContent = "@" + CONTATO.instagramHugo;
+  $("#yr").textContent = new Date().getFullYear();
+  const pad = n => String(n).padStart(2, "0") + ":00";
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const open = now.getDay() >= 1 && now.getDay() <= CONTATO.diaFim && now.getHours() >= CONTATO.abre && now.getHours() < CONTATO.fecha;
+  $("#openTxt").textContent = open ? "Aberto agora" : "Fechado agora";
+  $("#openNow").classList.toggle("closed", !open);
+  $("#openHrs").textContent = `Seg a ${CONTATO.diaFim === 6 ? "sáb" : "sex"} · ${pad(CONTATO.abre)} – ${pad(CONTATO.fecha)}`;
+}
+render();
 
-const pad = n => String(n).padStart(2, "0") + ":00";
-const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-const open = now.getDay() >= 1 && now.getDay() <= 5 && now.getHours() >= CONTATO.abre && now.getHours() < CONTATO.fecha;
-$("#openTxt").textContent = open ? "Aberto agora" : "Fechado agora";
-$("#openNow").classList.toggle("closed", !open);
-$("#openHrs").textContent = `Seg a sex · ${pad(CONTATO.abre)} – ${pad(CONTATO.fecha)}`;
+/* content edited in the admin panel: contacts, hours, the phrase, each button and Hugo's photo */
+fetch("/api/content", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => {
+  if (!j || !j.cfg) return;
+  const c = j.cfg;
+  Object.assign(CONTATO, { whatsapp: c.contato.whatsapp, telefone: c.contato.telefone, site: c.contato.site,
+    instagramHugo: c.contato.instagramHugo, diaFim: c.contato.diaFim, abre: c.contato.abre, fecha: c.contato.fecha });
+  $("#bioFrase").textContent = c.bio.frase;
+  c.bio.botoes.forEach(b => {
+    const a = document.querySelector(`[data-ev="${b.id}"]`);
+    if (!a) return;
+    a.querySelector(".tx b").textContent = b.titulo;
+    a.querySelector(".tx small").textContent = b.sub;
+    a.dataset.wa = b.msg;
+    a.closest("li").hidden = !b.visivel;
+  });
+  if (c.foto.v) $("#whoImg").src = "/api/photo?v=" + c.foto.v;
+  render();
+}).catch(() => {});
 
 
 /* ---- anonymous visit and click counting for the admin panel (no personal data) ---- */

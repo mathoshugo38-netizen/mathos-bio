@@ -123,6 +123,49 @@ th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--pan
 .scale i{display:block;width:120px;height:8px;background:linear-gradient(90deg,#16243A,#8DB6EE)}
 
 .note{font-size:12px;color:var(--muted);margin:0}
+/* tabs + editor */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--card)}
+.pane{display:flex;flex-direction:column;gap:16px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.fgrid.three{grid-template-columns:repeat(3,1fr)}
+.fgrid.one{grid-template-columns:1fr;margin-top:16px}
+@media (max-width:640px){.fgrid,.fgrid.three{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2);min-width:0}
+.f input,.f textarea,.f select{background:var(--panel-2);border:1px solid var(--line);border-radius:0;padding:10px 11px;font-size:14px;font-weight:400;color:var(--ink);width:100%;resize:vertical;font-family:var(--f)}
+.f input:focus,.f textarea:focus,.f select:focus{outline:2px solid var(--single);outline-offset:-1px}
+.f small{font-weight:400;color:var(--muted);font-size:11.5px}
+.bed{border-top:1px solid var(--line);padding-top:14px;margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.bed h3{grid-column:1/-1;margin:0;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bed .wide{grid-column:1/-1}
+.bed.off{opacity:.55}
+@media (max-width:640px){.bed{grid-template-columns:1fr}}
+.tog{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.tog input{width:16px;height:16px;accent-color:var(--bio)}
+.photo{display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:start}
+@media (max-width:560px){.photo{grid-template-columns:1fr}}
+.mock{position:relative;width:170px;aspect-ratio:4/5.6;overflow:hidden;background:radial-gradient(60% 45% at 50% 36%,#4A6E9B 0%,transparent 70%),linear-gradient(180deg,#1B2D49,#0D1729)}
+.mock img{position:absolute;left:50%;bottom:0;width:90%;transform:translateX(-50%);-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent 97%);mask-image:linear-gradient(180deg,#000 60%,transparent 97%)}
+.mock::after{content:"";position:absolute;inset:auto 0 0;height:46%;background:linear-gradient(180deg,transparent,rgba(13,23,41,.78) 55%,#0D1729)}
+.mock-n{position:absolute;left:10px;bottom:10px;z-index:2;font-weight:800;font-size:20px;line-height:.95}
+.mock-n em{font-style:normal;color:#A9C1E0}
+.photo-c{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hint{margin:0;font-size:12.5px;color:var(--muted)}
+.hint b{color:var(--ink-2)}
+.warn{margin:0;font-size:12.5px;color:var(--warn);border-left:3px solid var(--warn);padding-left:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--ink);color:#0E1A2C;border:1px solid var(--ink);padding:9px 14px;font-weight:700;font-size:12.5px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.ghost-btn{background:none;color:var(--ink-2);border-color:var(--line)}
+.ghost-btn:hover{color:var(--ink);border-color:var(--muted)}
+.pstatus,.sstatus{margin:0;font-size:12.5px;color:var(--muted)}
+.savebar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;
+  background:rgba(10,19,34,.94);backdrop-filter:blur(6px);border-top:1px solid var(--line);
+  padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.sstatus{margin-right:auto}
+.sstatus.ok{color:var(--ok)}.sstatus.err{color:var(--bad)}.sstatus.dirty{color:var(--warn)}
+
 .alert{background:var(--panel);border-left:3px solid var(--warn);padding:14px 16px;font-size:13px;color:var(--ink-2)}
 .alert b{color:var(--ink)}
 </style>
@@ -152,7 +195,7 @@ th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--pan
   <header class="top">
     <div class="brand"><svg viewBox="0 0 427 509" width="26" height="31" aria-hidden="true"><use href="#mark" width="100%" height="100%"/></svg><b>MATHOS</b><span>Painel</span></div>
     <div class="ctrl">
-      <div class="seg" role="group" aria-label="Período">
+      <div class="seg" id="periodSeg" role="group" aria-label="Período">
         <button type="button" data-days="7" aria-pressed="false">7 dias</button>
         <button type="button" data-days="30" aria-pressed="true">30 dias</button>
         <button type="button" data-days="90" aria-pressed="false">90 dias</button>
@@ -161,8 +204,13 @@ th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--pan
       <button type="button" class="ghost" id="logout">Sair</button>
     </div>
   </header>
-  <p class="updated" id="updated"></p>
+  <nav class="tabs" role="tablist" aria-label="Seções do painel">
+    <button type="button" role="tab" id="tb-stats" aria-controls="tabStats" aria-selected="true">Números</button>
+    <button type="button" role="tab" id="tb-edit" aria-controls="tabEdit" aria-selected="false">Editar</button>
+  </nav>
   <div class="alert" id="alert" hidden></div>
+  <div id="tabStats" role="tabpanel" aria-labelledby="tb-stats" class="pane">
+  <p class="updated" id="updated"></p>
 
   <section class="kpis" aria-label="Resumo do período">
     <div class="kpi"><span class="k"><i style="background:var(--bio)"></i>Visitas na bio</span><span class="v" id="kBio">0</span><span class="d" id="kBioU"></span></div>
@@ -214,6 +262,75 @@ th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--pan
   </section>
 
   <p class="note">Contagem anônima: nenhuma informação pessoal é guardada. "Pessoas diferentes" é uma estimativa por aparelho.</p>
+  </div>
+
+  <div id="tabEdit" role="tabpanel" aria-labelledby="tb-edit" class="pane" hidden>
+    <p class="note">O que você salvar aqui aparece na hora no cartão do Hugo e na bio do Instagram. Se algo ficar errado, use <b>Desfazer</b>.</p>
+
+    <section class="box">
+      <h2>Contatos</h2>
+      <p class="sub">Valem para as duas páginas</p>
+      <div class="fgrid">
+        <label class="f">WhatsApp e telefone<input data-k="contato.telefone" type="tel" maxlength="30" placeholder="(62) 9 8154-9797"><small>Com DDD. O link do WhatsApp usa esse mesmo número.</small></label>
+        <label class="f">Site<input data-k="contato.site" type="text" maxlength="80" placeholder="www.mathoscontabilidade.com.br"></label>
+        <label class="f">Instagram do Hugo<input data-k="contato.instagramHugo" type="text" maxlength="40" placeholder="hugo.mathos"></label>
+        <label class="f">Instagram da Mathos<input data-k="contato.instagramMathos" type="text" maxlength="40" placeholder="mathoscontabilidade"></label>
+      </div>
+    </section>
+
+    <section class="box">
+      <h2>Horário de atendimento</h2>
+      <p class="sub">Usado no aviso "Aberto agora / Fechado agora" e no "Sobre"</p>
+      <div class="fgrid three">
+        <label class="f">Dias<select data-k="contato.diaFim"><option value="5">Segunda a sexta</option><option value="6">Segunda a sábado</option></select></label>
+        <label class="f">Abre às<select data-k="contato.abre" data-hours></select></label>
+        <label class="f">Fecha às<select data-k="contato.fecha" data-hours></select></label>
+      </div>
+    </section>
+
+    <section class="box">
+      <h2>Cartão do Hugo</h2>
+      <p class="sub">hugo.mathoscontabilidade.com.br</p>
+      <div class="photo">
+        <div class="mock" id="mock"><img id="mockImg" alt="Prévia da foto no cartão"><span class="mock-n">Hugo<br><em>Mathos</em></span></div>
+        <div class="photo-c">
+          <b>Foto</b>
+          <p class="hint">Use uma foto <b>sem fundo</b> (PNG recortado), da cintura para cima, de frente. Dá para recortar no Canva ("Removedor de fundo") ou no remove.bg.</p>
+          <p class="warn" id="photoWarn" hidden></p>
+          <div class="row">
+            <label class="btn ghost-btn" for="photoIn">Escolher foto</label>
+            <input id="photoIn" type="file" accept="image/png,image/webp,image/jpeg" hidden>
+            <button type="button" class="btn" id="photoUse" hidden>Usar esta foto</button>
+            <button type="button" class="btn ghost-btn" id="photoCancel" hidden>Cancelar</button>
+            <button type="button" class="btn ghost-btn" id="photoReset">Voltar à foto original</button>
+          </div>
+          <p class="pstatus" id="photoStatus" role="status"></p>
+        </div>
+      </div>
+      <div class="fgrid one">
+        <label class="f">Linha acima do nome<input data-k="cartao.topo" type="text" maxlength="40"></label>
+        <label class="f">Frase de apresentação<textarea data-k="cartao.frase" rows="3" maxlength="160"></textarea></label>
+        <label class="f">Sobre o Hugo · 1º parágrafo<textarea data-k="cartao.sobre1" rows="5" maxlength="400"></textarea></label>
+        <label class="f">Sobre o Hugo · 2º parágrafo<textarea data-k="cartao.sobre2" rows="5" maxlength="400"></textarea></label>
+        <label class="f">Mensagem pronta do botão de WhatsApp<textarea data-k="cartao.mensagem" rows="3" maxlength="300"></textarea></label>
+      </div>
+    </section>
+
+    <section class="box">
+      <h2>Bio do Instagram</h2>
+      <p class="sub">bio.mathoscontabilidade.com.br</p>
+      <div class="fgrid one">
+        <label class="f">Frase abaixo do nome<input data-k="bio.frase" type="text" maxlength="120"></label>
+      </div>
+      <div id="btnEd"></div>
+    </section>
+
+    <div class="savebar">
+      <span class="sstatus" id="saveStatus" role="status"></span>
+      <button type="button" class="btn ghost-btn" id="undoBtn">Desfazer</button>
+      <button type="button" class="btn" id="saveBtn">Salvar</button>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -384,6 +501,139 @@ function drawTrend(){
   hit.addEventListener("pointerleave", () => { xh.setAttribute("visibility", "hidden"); tip.hidden = true; });
 }
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => trendData.length && drawTrend(), 150); });
+
+/* ---------- tabs ---------- */
+const tabBtns = [...document.querySelectorAll('.tabs [role="tab"]')];
+function showTab(id){
+  tabBtns.forEach(b => { const on = b.id === id; b.setAttribute("aria-selected", on); document.getElementById(b.getAttribute("aria-controls")).hidden = !on; });
+  const stats = id === "tb-stats";
+  $("#periodSeg").hidden = !stats; $("#refresh").hidden = !stats;
+  if (!stats && !CFG) loadCfg();
+}
+tabBtns.forEach(b => b.onclick = () => showTab(b.id));
+
+/* ---------- editor ---------- */
+const BIO = "";   // the panel lives on the bio site, so its API is same-origin
+let CFG = null, dirty = false, pendingPhoto = null;
+const getK = (o, k) => k.split(".").reduce((a, p) => a && a[p], o);
+const setK = (o, k, v) => { const ps = k.split("."), last = ps.pop(); ps.reduce((a, p) => a[p] = a[p] || {}, o)[last] = v; };
+document.querySelectorAll("[data-hours]").forEach(sel => { for (let h = 0; h <= 24; h++) sel.add(new Option(String(h).padStart(2, "0") + ":00", h)); });
+
+function status(t, cls){ const s = $("#saveStatus"); s.textContent = t; s.className = "sstatus" + (cls ? " " + cls : ""); }
+function markDirty(){ dirty = true; status("Alterações não salvas", "dirty"); }
+$("#tabEdit").addEventListener("input", e => { if (e.target.closest("[data-k],[data-b]")) markDirty(); });
+addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+async function api(path, opt = {}){
+  const r = await fetch(BIO + path, { ...opt, headers: { "Content-Type": "application/json", "x-admin-key": pw, ...(opt.headers || {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { status("Sua sessão expirou. Saia e entre de novo.", "err"); throw new Error("401"); }
+  if (!r.ok) throw Object.assign(new Error(j.error || r.status), { code: j.error });
+  return j;
+}
+
+async function loadCfg(){
+  status("Carregando…");
+  try { const j = await api("/api/content"); CFG = j.cfg; fillForm(j.hasPrev); status(""); }
+  catch { status("Não foi possível carregar o conteúdo. Tente de novo.", "err"); }
+}
+
+function fillForm(hasPrev){
+  document.querySelectorAll("#tabEdit [data-k]").forEach(el => { el.value = getK(CFG, el.dataset.k); });
+  $("#btnEd").innerHTML = CFG.bio.botoes.map((b, i) => `
+    <div class="bed${b.visivel ? "" : " off"}" data-i="${i}">
+      <h3>Botão ${i + 1}<label class="tog"><input type="checkbox" data-b="visivel" ${b.visivel ? "checked" : ""}>Mostrar na bio</label></h3>
+      <label class="f">Título<input data-b="titulo" type="text" maxlength="40" value="${esc(b.titulo)}"></label>
+      <label class="f">Texto pequeno<input data-b="sub" type="text" maxlength="70" value="${esc(b.sub)}"></label>
+      <label class="f wide">Mensagem que vai pronta no WhatsApp<textarea data-b="msg" rows="3" maxlength="300">${esc(b.msg)}</textarea></label>
+    </div>`).join("");
+  $("#btnEd").querySelectorAll('[data-b="visivel"]').forEach(c => c.onchange = () => c.closest(".bed").classList.toggle("off", !c.checked));
+  $("#undoBtn").disabled = !hasPrev;
+  showPhoto(CFG.foto.v ? `/api/photo?v=${CFG.foto.v}` : "/hugo.webp");
+  $("#photoReset").hidden = !CFG.foto.v;
+  dirty = false;
+}
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+function collect(){
+  const c = JSON.parse(JSON.stringify(CFG));
+  document.querySelectorAll("#tabEdit [data-k]").forEach(el => setK(c, el.dataset.k, el.value));
+  c.contato.whatsapp = c.contato.telefone;   // one number for both: the server keeps only the digits
+  c.bio.botoes = [...document.querySelectorAll("#btnEd .bed")].map(d => {
+    const b = { ...CFG.bio.botoes[+d.dataset.i] };
+    d.querySelectorAll("[data-b]").forEach(el => b[el.dataset.b] = el.type === "checkbox" ? el.checked : el.value);
+    return b;
+  });
+  return c;
+}
+
+$("#saveBtn").onclick = async () => {
+  const c = collect();
+  if (+c.contato.fecha <= +c.contato.abre) return status("O horário de fechar precisa ser depois do de abrir.", "err");
+  if (c.contato.telefone.replace(/\D/g, "").length < 10) return status("Confira o WhatsApp: precisa ter DDD e número.", "err");
+  $("#saveBtn").disabled = true; status("Salvando…");
+  try { const j = await api("/api/content", { method: "PUT", body: JSON.stringify({ cfg: c }) }); CFG = j.cfg; fillForm(true); status("Salvo. As páginas já mostram a versão nova.", "ok"); }
+  catch (e) { if (e.message !== "401") status("Não salvou. Confira a internet e tente de novo.", "err"); }
+  $("#saveBtn").disabled = false;
+};
+$("#undoBtn").onclick = async () => {
+  if (dirty) { if (!$("#undoBtn").dataset.confirm) { $("#undoBtn").dataset.confirm = 1; $("#undoBtn").textContent = "Desfazer mesmo?"; status("Isso descarta o que não foi salvo e volta para a versão anterior.", "dirty"); return; } }
+  delete $("#undoBtn").dataset.confirm; $("#undoBtn").textContent = "Desfazer";
+  status("Voltando…");
+  try { const j = await api("/api/content", { method: "POST", body: JSON.stringify({ undo: true }) }); CFG = j.cfg; fillForm(false); status("Pronto: voltou para a versão anterior.", "ok"); }
+  catch (e) { if (e.code === "nothing-to-undo") status("Não há alteração anterior para desfazer.", "err"); else if (e.message !== "401") status("Não foi possível desfazer agora.", "err"); }
+};
+
+/* ---------- photo: resized here, checked for a transparent background, previewed in a mock of the card ---------- */
+function showPhoto(src){ $("#mockImg").src = src; }
+$("#photoIn").onchange = async () => {
+  const f = $("#photoIn").files[0]; $("#photoIn").value = "";
+  if (!f) return;
+  $("#photoWarn").hidden = true; $("#photoStatus").textContent = "Preparando a foto…";
+  try {
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = URL.createObjectURL(f); });
+    let w = Math.min(640, img.naturalWidth), out;
+    for (;;) {
+      const h = Math.round(img.naturalHeight * w / img.naturalWidth), cv = document.createElement("canvas");
+      cv.width = w; cv.height = h; const cx = cv.getContext("2d"); cx.drawImage(img, 0, 0, w, h);
+      if (!out) {   // how much of the border is transparent tells whether the background was removed
+        const d = cx.getImageData(0, 0, w, h).data; let edge = 0, clear = 0;
+        const px = (x, y) => { edge++; if (d[(y * w + x) * 4 + 3] < 30) clear++; };
+        for (let x = 0; x < w; x += 4) px(x, 0);
+        for (let y = 0; y < h * .7; y += 4) { px(0, Math.floor(y)); px(w - 1, Math.floor(y)); }
+        out = { transparent: clear / edge > .6 };
+      }
+      let url = cv.toDataURL("image/webp", .86);
+      if (!url.startsWith("data:image/webp")) url = cv.toDataURL(out.transparent ? "image/png" : "image/jpeg", .88);
+      out.url = url;
+      if (url.length < 880 * 1024 || w <= 320) break;
+      w = Math.round(w * .8);
+    }
+    pendingPhoto = out;
+    showPhoto(out.url);
+    if (!out.transparent) { $("#photoWarn").hidden = false; $("#photoWarn").textContent = "Essa foto parece ter fundo. No cartão ela vai aparecer com o fundo dentro do quadro, como na prévia. Para ficar como a atual, envie a versão recortada (PNG sem fundo)."; }
+    $("#photoStatus").textContent = "Prévia acima. Se gostar, toque em \"Usar esta foto\".";
+    $("#photoUse").hidden = false; $("#photoCancel").hidden = false;
+  } catch { $("#photoStatus").textContent = "Não consegui abrir essa imagem. Tente uma foto PNG ou JPG."; }
+};
+$("#photoCancel").onclick = () => { pendingPhoto = null; $("#photoUse").hidden = $("#photoCancel").hidden = true; $("#photoWarn").hidden = true; $("#photoStatus").textContent = ""; showPhoto(CFG.foto.v ? `/api/photo?v=${CFG.foto.v}` : "/hugo.webp"); };
+$("#photoUse").onclick = async () => {
+  if (!pendingPhoto) return;
+  const [, type, data] = pendingPhoto.url.match(/^data:([^;]+);base64,(.*)$/);
+  $("#photoUse").disabled = true; $("#photoStatus").textContent = "Enviando…";
+  try {
+    const j = await api("/api/photo", { method: "POST", body: JSON.stringify({ type, data }) });
+    CFG.foto = j.cfg.foto; pendingPhoto = null;
+    $("#photoUse").hidden = $("#photoCancel").hidden = true; $("#photoReset").hidden = false; $("#undoBtn").disabled = false;
+    $("#photoStatus").textContent = "Foto trocada. Ela já aparece no cartão e na bio.";
+  } catch (e) { if (e.message !== "401") $("#photoStatus").textContent = e.code === "too-big" ? "A foto ficou grande demais. Tente uma imagem menor." : "Não foi possível enviar agora. Tente de novo."; }
+  $("#photoUse").disabled = false;
+};
+$("#photoReset").onclick = async () => {
+  $("#photoStatus").textContent = "Voltando à foto original…";
+  try { const j = await api("/api/photo", { method: "DELETE" }); CFG.foto = j.cfg.foto; showPhoto("/hugo.webp"); $("#photoReset").hidden = true; $("#undoBtn").disabled = false; $("#photoStatus").textContent = "Pronto: voltou para a foto original."; }
+  catch (e) { if (e.message !== "401") $("#photoStatus").textContent = "Não foi possível agora. Tente de novo."; }
+};
 
 load();
 </script>
